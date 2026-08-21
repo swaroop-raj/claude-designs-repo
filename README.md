@@ -4,6 +4,10 @@
 
 Claude Code starts every session blank. These patterns fix that. This guide covers two approaches (pick the one that fits your workflow) plus a lightweight baseline pattern you can adopt immediately.
 
+**IDE:** VS Code  
+**OS:** Windows  
+**Shell:** PowerShell (default) or Git Bash
+
 ---
 
 ## Minimum Configuration (Must-Haves)
@@ -17,12 +21,52 @@ Before choosing an approach, every new project needs these. Copy-paste and go.
 | 3 | `.claude/memory/architecture.md` | Active design decisions and system state | Prevents contradictory suggestions across sessions |
 | 4 | `.gitignore` entry | `# .claude/memory/` (optional, your call) | Decide once whether memory is committed or local-only |
 
-### 30-Second Setup (copy-paste this)
+### 30-Second Setup (PowerShell)
 
-```bash
-mkdir -p .claude/memory
+```powershell
+# From your project root in VS Code terminal (Ctrl+`)
+New-Item -ItemType Directory -Force -Path .claude\memory
 
 # 1. CLAUDE.md -- your project's identity card
+@"
+# Project: <name>
+
+## Stack
+- <language/framework>
+- <database>
+- <key dependencies>
+
+## Commands
+- ``<dev command>`` -- run locally
+- ``<test command>`` -- run tests
+- ``<build command>`` -- production build
+
+## Rules
+- <your top 3-5 coding conventions>
+
+## Memory
+Always read ``.claude/memory/feedback.md`` and ``.claude/memory/architecture.md`` at session start.
+"@ | Set-Content .claude\CLAUDE.md -Encoding UTF8
+
+# 2. feedback.md -- corrections accumulate here
+@"
+# Corrections
+<!-- One line per lesson. Date it. -->
+"@ | Set-Content .claude\memory\feedback.md -Encoding UTF8
+
+# 3. architecture.md -- decisions live here
+@"
+# Decisions
+<!-- One line per decision. Date it. -->
+"@ | Set-Content .claude\memory\architecture.md -Encoding UTF8
+```
+
+### 30-Second Setup (Git Bash alternative)
+
+```bash
+# From your project root in VS Code terminal (select Git Bash from dropdown)
+mkdir -p .claude/memory
+
 cat > .claude/CLAUDE.md << 'EOF'
 # Project: <name>
 
@@ -43,13 +87,11 @@ cat > .claude/CLAUDE.md << 'EOF'
 Always read `.claude/memory/feedback.md` and `.claude/memory/architecture.md` at session start.
 EOF
 
-# 2. feedback.md -- corrections accumulate here
 cat > .claude/memory/feedback.md << 'EOF'
 # Corrections
 <!-- One line per lesson. Date it. -->
 EOF
 
-# 3. architecture.md -- decisions live here
 cat > .claude/memory/architecture.md << 'EOF'
 # Decisions
 <!-- One line per decision. Date it. -->
@@ -62,13 +104,23 @@ That's it. Claude now starts every session knowing your stack, your rules, and y
 
 ## Prerequisites
 
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| Claude CLI (`claude`) | Latest | [Install docs](https://docs.anthropic.com/en/docs/claude-code) |
-| Python | 3.9+ | For setup scripts and plugins |
-| Node.js | 22+ | Required for learning-loop only |
-| Bash | 3.2+ | Stock macOS ships 3.2.57 |
-| Git | 2.x | For version control of memory files |
+| Requirement | Version | Install on Windows | Notes |
+|-------------|---------|-------------------|-------|
+| Claude CLI (`claude`) | Latest | `npm install -g @anthropic-ai/claude-code` | [Install docs](https://docs.anthropic.com/en/docs/claude-code) |
+| Python | 3.9+ | [python.org](https://www.python.org/downloads/windows/) or `winget install Python.Python.3.11` | Add to PATH during install |
+| Node.js | 22+ | [nodejs.org](https://nodejs.org/) or `winget install OpenJS.NodeJS` | Required for learning-loop only |
+| Git | 2.x | [git-scm.com](https://git-scm.com/download/win) or `winget install Git.Git` | Ships Git Bash |
+| VS Code | Latest | [code.visualstudio.com](https://code.visualstudio.com/) | Terminal: `Ctrl+\`` |
+
+### VS Code Extensions (Recommended)
+
+```powershell
+# Install from VS Code terminal
+code --install-extension yzhang.markdown-all-in-one
+code --install-extension bierner.markdown-preview-github-styles
+```
+
+These give you live preview of your memory files (`Ctrl+Shift+V` to preview any .md file).
 
 ---
 
@@ -80,31 +132,31 @@ That's it. Claude now starts every session knowing your stack, your rules, and y
 
 **Source:** [LuciferForge/claude-code-memory](https://github.com/LuciferForge/claude-code-memory)
 
-### Setup Steps
+### Setup Steps (Windows / VS Code Terminal)
 
-```bash
+```powershell
 # 1. Clone the template repo
 git clone https://github.com/LuciferForge/claude-code-memory.git
 cd claude-code-memory
 
 # 2. Run setup for your project
-python3 setup.py --project /path/to/your-new-project
+python setup.py --project C:\Users\<you>\projects\your-project
 
 # Or set up just the global config
-python3 setup.py --global-only
+python setup.py --global-only
 
 # 3. (Alternative) Manual copy if you prefer
-cp templates/CLAUDE.md ~/.claude/CLAUDE.md
+Copy-Item templates\CLAUDE.md $env:USERPROFILE\.claude\CLAUDE.md
 ```
 
 ### Resulting Structure
 
 ```
-~/.claude/
+%USERPROFILE%\.claude\
   CLAUDE.md                          # Global custom instructions (loaded every session)
-  projects/<project>/
+  projects\<project>\
     CLAUDE.md                        # Project-specific instructions
-    memory/
+    memory\
       MEMORY.md                      # Index file (always loaded, MUST stay under 200 lines)
       user_profile.md                # Who you are, skills, preferences
       feedback_style.md              # How you want Claude to behave
@@ -123,7 +175,7 @@ cp templates/CLAUDE.md ~/.claude/CLAUDE.md
 
 ### Key Rules
 
-1. **MEMORY.md must stay under 200 lines.** Truncation is silent. Check with `wc -l MEMORY.md`.
+1. **MEMORY.md must stay under 200 lines.** Truncation is silent. Check: `(Get-Content .claude\memory\MEMORY.md).Count`
 2. **One topic per file.** Small focused files let Claude load only what's relevant.
 3. **Feedback memories are highest value.** Every correction should become a memory.
 4. **Don't store what Claude can read.** Code conventions, file paths, git history: Claude can look those up.
@@ -160,29 +212,25 @@ Content here.
 
 **Source:** [robinslange/learning-loop](https://github.com/robinslange/learning-loop)
 
-### Setup Steps
+### Setup Steps (Windows)
+
+> **Note:** The one-line installer supports WSL x86_64. On native Windows, use the manual install path.
+
+#### Option A: WSL (recommended for full compatibility)
 
 ```bash
-# 1. One-line install (macOS arm64 / Linux x86_64 / WSL x86_64)
+# From WSL terminal in VS Code (select WSL from terminal dropdown)
 curl -fsSL https://raw.githubusercontent.com/robinslange/learning-loop/main/install.sh | bash
 
-# This takes ~3 minutes and will:
-# - Check your platform
-# - Ensure Node.js 22+ is available
-# - Add ~/.local/bin to PATH
-# - Install Claude Code if missing
-# - Add required marketplaces
-# - Install both episodic-memory and learning-loop plugins
-
-# 2. After install, open Claude Code and run:
+# After install, open Claude Code and run:
 /learning-loop:init
-# This configures your vault path and persona
 ```
 
-### Manual Install (if you prefer)
+#### Option B: Native Windows (manual)
 
-```bash
-# 1. Install Claude Code: https://docs.anthropic.com/en/docs/claude-code
+```powershell
+# 1. Ensure Claude Code is installed
+npm install -g @anthropic-ai/claude-code
 
 # 2. Add marketplaces
 claude plugin marketplace add obra/superpowers-marketplace
@@ -199,15 +247,15 @@ claude plugin install learning-loop@learning-loop-marketplace
 ### Vault Structure
 
 ```
-your-vault/
-  0-inbox/          # Rough captures, new ideas
-  1-fleeting/       # Developing notes, partially sourced
-  2-literature/     # External source captures
-  3-permanent/      # Complete, sourced, linked, voiced
-  4-projects/       # Project index notes
-  5-maps/           # Synthesis and discovery maps
-  _system/          # Persona and capture rules
-  Excalidraw/       # Diagrams
+your-vault\
+  0-inbox\          # Rough captures, new ideas
+  1-fleeting\       # Developing notes, partially sourced
+  2-literature\     # External source captures
+  3-permanent\      # Complete, sourced, linked, voiced
+  4-projects\       # Project index notes
+  5-maps\           # Synthesis and discovery maps
+  _system\          # Persona and capture rules
+  Excalidraw\       # Diagrams
 ```
 
 ### Key Commands
@@ -245,7 +293,7 @@ The plugin wires into Claude Code's lifecycle:
 
 - **episodic-memory** (required): Provides semantic recall over past conversations
 - **Node.js 22+**: For the plugin runtime
-- **ll-search binary**: Installed automatically for supported platforms
+- **ll-search binary**: Installed automatically (WSL/Linux); may need source build on native Windows
 
 ### When to Choose This Approach
 
@@ -268,10 +316,11 @@ The plugin wires into Claude Code's lifecycle:
 | **Automation** | Manual curation | Automated hooks + quality gates |
 | **Source verification** | None (you verify) | Built-in (checks PMIDs, DOIs, citations) |
 | **Cost** | Free | Free (local) or embedding API costs |
-| **Inspect/edit** | Open the markdown file | Commands + vault files |
+| **Inspect/edit** | Open in VS Code (`Ctrl+Click` the path) | Commands + vault files |
 | **Best mental model** | A briefing doc you maintain | A second brain that compounds |
 | **Correction propagation** | Manual update | Automated via `/rewrite` |
 | **Offline capable** | Yes (always) | Yes (`LL_OFFLINE=1`) |
+| **Windows support** | Full (just markdown files) | Full via WSL; native Windows needs manual install |
 
 ---
 
@@ -282,40 +331,40 @@ This pattern works standalone or alongside either approach above. It's the minim
 ### Structure
 
 ```
-.claude/
+.claude\
 +-- CLAUDE.md              # Master rules, build commands, and tech stack
-+-- memory/
++-- memory\
     +-- feedback.md        # Distilled user corrections and anti-patterns
     +-- architecture.md    # Active architectural decisions and state
 ```
 
-### Setup Commands
+### Setup (PowerShell in VS Code)
 
-```bash
-# From your project root
-mkdir -p .claude/memory
+```powershell
+# From your project root (Ctrl+` to open terminal)
+New-Item -ItemType Directory -Force -Path .claude\memory
 
 # Create the master instructions file
-cat > .claude/CLAUDE.md << 'EOF'
+@"
 # Project: <your-project-name>
 
 ## Tech Stack
 - <list your stack here>
 
 ## Build Commands
-- `npm run dev` -- start dev server
-- `npm test` -- run tests
-- `npm run build` -- production build
+- ``npm run dev`` -- start dev server
+- ``npm test`` -- run tests
+- ``npm run build`` -- production build
 
 ## Conventions
 - <your coding conventions>
 
 ## Memory
-On session start, read `.claude/memory/feedback.md` and `.claude/memory/architecture.md` for accumulated context.
-EOF
+On session start, read ``.claude/memory/feedback.md`` and ``.claude/memory/architecture.md`` for accumulated context.
+"@ | Set-Content .claude\CLAUDE.md -Encoding UTF8
 
 # Create the feedback file
-cat > .claude/memory/feedback.md << 'EOF'
+@"
 # Feedback and Corrections
 
 Distilled user corrections, anti-patterns, and preferences learned across sessions.
@@ -323,10 +372,10 @@ Distilled user corrections, anti-patterns, and preferences learned across sessio
 ---
 
 <!-- Add entries below as they come up -->
-EOF
+"@ | Set-Content .claude\memory\feedback.md -Encoding UTF8
 
 # Create the architecture decisions file
-cat > .claude/memory/architecture.md << 'EOF'
+@"
 # Architecture Decisions
 
 Active architectural decisions, patterns in use, and current system state.
@@ -334,20 +383,21 @@ Active architectural decisions, patterns in use, and current system state.
 ---
 
 <!-- Add entries below as decisions are made -->
-EOF
+"@ | Set-Content .claude\memory\architecture.md -Encoding UTF8
 ```
 
 ### End-of-Session Distillation
 
 Run this at the end of heavy sessions to auto-capture learnings:
 
-```bash
+```powershell
+# From VS Code terminal
 claude -p "Review our recent conversation, extract any newly established debugging patterns or corrected user preferences, and append them concisely to .claude/memory/feedback.md."
 ```
 
 For architecture updates:
 
-```bash
+```powershell
 claude -p "Review our recent conversation, extract any new architectural decisions or state changes, and append them concisely to .claude/memory/architecture.md."
 ```
 
@@ -358,6 +408,7 @@ claude -p "Review our recent conversation, extract any new architectural decisio
 3. **Date your entries.** Prefix with `YYYY-MM-DD` so stale ones are easy to spot.
 4. **Prune quarterly.** If a pattern hasn't been relevant in 3 months, archive or delete it.
 5. **Version control these files.** They're small, diffable, and your future self will thank you.
+6. **Use VS Code's timeline view** (`Right-click file > Open Timeline`) to see how your memory evolves over time.
 
 ### Example feedback.md After a Few Sessions
 
@@ -375,31 +426,72 @@ claude -p "Review our recent conversation, extract any new architectural decisio
 
 ## Starting a New Project Checklist
 
-```bash
-# 1. Create project
-mkdir my-new-project && cd my-new-project
+```powershell
+# 1. Create project (VS Code terminal, PowerShell)
+mkdir my-new-project
+cd my-new-project
 git init
 
-# 2. Set up the dual-file baseline (always, takes 30 seconds)
-mkdir -p .claude/memory
+# 2. Open in VS Code
+code .
+
+# 3. Set up the dual-file baseline (always, takes 30 seconds)
+New-Item -ItemType Directory -Force -Path .claude\memory
 # Create CLAUDE.md, feedback.md, architecture.md (see commands above)
 
-# 3. Choose your memory approach:
+# 4. Choose your memory approach:
 
 # Option A: Keep it simple (claude-code-memory templates)
-git clone https://github.com/LuciferForge/claude-code-memory.git /tmp/ccm
-python3 /tmp/ccm/setup.py --project .
-rm -rf /tmp/ccm
+git clone https://github.com/LuciferForge/claude-code-memory.git $env:TEMP\ccm
+python $env:TEMP\ccm\setup.py --project .
+Remove-Item -Recurse -Force $env:TEMP\ccm
 
 # Option B: Full knowledge vault (learning-loop)
-# Run the one-liner from Approach 2 above, then /learning-loop:init
+# Use WSL terminal in VS Code, run the one-liner from Approach 2, then /learning-loop:init
 
-# 4. Add to .gitignore (if using local memory files you don't want committed)
-echo ".claude/memory/" >> .gitignore  # Optional: some prefer to commit these
+# 5. Add to .gitignore (if using local memory files you don't want committed)
+Add-Content .gitignore ".claude/memory/"
 
-# 5. Start Claude Code
+# 6. Start Claude Code
 claude
 ```
+
+---
+
+## VS Code Tips for Working with Memory Files
+
+| Action | Shortcut / Command |
+|--------|-------------------|
+| Open terminal | `Ctrl+\`` |
+| Switch terminal shell (PowerShell/Git Bash/WSL) | Click dropdown arrow in terminal panel |
+| Quick-open any memory file | `Ctrl+P` then type `feedback.md` |
+| Preview markdown | `Ctrl+Shift+V` |
+| Side-by-side preview | `Ctrl+K V` |
+| View file history (Git) | Right-click file > `Open Timeline` |
+| Search across memory files | `Ctrl+Shift+F` then scope to `.claude/` folder |
+| Multi-cursor edit (bulk date prefixes) | `Ctrl+Alt+Down` to add cursors |
+| Fold sections in large files | `Ctrl+Shift+[` |
+
+### Recommended VS Code Settings for Memory Files
+
+Add to `.vscode/settings.json` in your project:
+
+```json
+{
+  "files.associations": {
+    ".claude/**/*.md": "markdown"
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": false
+  },
+  "search.exclude": {
+    ".claude/memory/**": false
+  }
+}
+```
+
+This ensures memory files get proper markdown highlighting and word wrap, and are always searchable.
 
 ---
 
