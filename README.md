@@ -6,6 +6,60 @@ Claude Code starts every session blank. These patterns fix that. This guide cove
 
 ---
 
+## Minimum Configuration (Must-Haves)
+
+Before choosing an approach, every new project needs these. Copy-paste and go.
+
+| # | File | One-liner | Why it's non-negotiable |
+|---|------|-----------|-------------------------|
+| 1 | `.claude/CLAUDE.md` | Master instructions: tech stack, build commands, conventions | Without this, Claude asks "what framework?" every session |
+| 2 | `.claude/memory/feedback.md` | Running log of corrections and anti-patterns | Stops Claude from repeating the same mistakes |
+| 3 | `.claude/memory/architecture.md` | Active design decisions and system state | Prevents contradictory suggestions across sessions |
+| 4 | `.gitignore` entry | `# .claude/memory/` (optional, your call) | Decide once whether memory is committed or local-only |
+
+### 30-Second Setup (copy-paste this)
+
+```bash
+mkdir -p .claude/memory
+
+# 1. CLAUDE.md -- your project's identity card
+cat > .claude/CLAUDE.md << 'EOF'
+# Project: <name>
+
+## Stack
+- <language/framework>
+- <database>
+- <key dependencies>
+
+## Commands
+- `<dev command>` -- run locally
+- `<test command>` -- run tests
+- `<build command>` -- production build
+
+## Rules
+- <your top 3-5 coding conventions>
+
+## Memory
+Always read `.claude/memory/feedback.md` and `.claude/memory/architecture.md` at session start.
+EOF
+
+# 2. feedback.md -- corrections accumulate here
+cat > .claude/memory/feedback.md << 'EOF'
+# Corrections
+<!-- One line per lesson. Date it. -->
+EOF
+
+# 3. architecture.md -- decisions live here
+cat > .claude/memory/architecture.md << 'EOF'
+# Decisions
+<!-- One line per decision. Date it. -->
+EOF
+```
+
+That's it. Claude now starts every session knowing your stack, your rules, and your past corrections. Everything below is an upgrade path.
+
+---
+
 ## Prerequisites
 
 | Requirement | Version | Notes |
