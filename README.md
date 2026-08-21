@@ -252,7 +252,7 @@ your-vault\
   1-fleeting\       # Developing notes, partially sourced
   2-literature\     # External source captures
   3-permanent\      # Complete, sourced, linked, voiced
-  4-projects\       # Project index notes
+  4-projects\      # Project index notes
   5-maps\           # Synthesis and discovery maps
   _system\          # Persona and capture rules
   Excalidraw\       # Diagrams
