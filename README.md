@@ -1,3 +1,9 @@
+<!-- agent:brain -->
+<!-- Commit convention: Conventional Commits with agent scope -->
+<!-- Format: type(agent:brain): description -->
+<!-- Tags: semantic versioning (v0.1.0, v1.0.0) -->
+<!-- Branch: main (direct commit) -->
+
 # Claude Code Memory Setup Guide
 
 > A reference for setting up persistent memory, context, and feedback loops when starting a new project with Claude Code.
@@ -6,7 +12,9 @@ Claude Code starts every session blank. These patterns fix that. This guide cove
 
 **IDE:** VS Code  
 **OS:** Windows  
-**Shell:** PowerShell (default) or Git Bash
+**Shell:** PowerShell (default) or Git Bash  
+**Agent:** `agent:brain`  
+**Commit format:** `type(agent:brain): message`
 
 ---
 
@@ -252,7 +260,7 @@ your-vault\
   1-fleeting\       # Developing notes, partially sourced
   2-literature\     # External source captures
   3-permanent\      # Complete, sourced, linked, voiced
-  4-projects\      # Project index notes
+  4-projects\       # Project index notes
   5-maps\           # Synthesis and discovery maps
   _system\          # Persona and capture rules
   Excalidraw\       # Diagrams
